@@ -56,4 +56,8 @@ nu_of_results = driver.find_element(By.XPATH, "/html/body/div[1]/div[3]/div[2]/d
 print("results for", product, "=>", nu_of_results)
 
 #capture product cards
-products = driver.find_elements(By.CLASS_NAME, "prdct-cntnr-wrppr")
+products_wrapper = driver.find_element(By.CLASS_NAME, "prdct-cntnr-wrppr")
+products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
+print(len(products), f"{product}' s this page")
+
+#scrape product details
