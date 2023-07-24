@@ -5,11 +5,12 @@ import time
 import json
 
 # initialize webdriver
+URL = "https://www.trendyol.com/"
 chrome_binary_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 options = webdriver.ChromeOptions()
 options.binary_location = chrome_binary_path
 driver = webdriver.Chrome(executable_path="~/usr/local/bin/chromedriver", options=options)
-URL = "https://www.trendyol.com/"
+driver.maximize_window()
 driver.get(URL)
 SLEEP_TIME = 2
 
@@ -25,9 +26,9 @@ try:
     pop_up = driver.find_element(By.CLASS_NAME, "homepage-popup")
     modal_close = driver.find_element(By.CLASS_NAME, "modal-close")
     modal_close.click()
-    print("pop up closed")
+    print("pop up closed in homescreen")
 except:
-    print("no pop up")
+    print("no pop up in homescreen")
 
 #click to sign in
 sign_in_button = driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[3]/div/div/div/div[1]/div[1]/p")
@@ -47,7 +48,7 @@ print("logged in")
 #click on search bar
 search_bar = driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[2]/div/div/div/input")
 #line below will be dynamically sent
-product = "macbook"
+product = "suwen"
 search_bar.send_keys(product)
 search_bar.send_keys(Keys.ENTER)
 
@@ -55,9 +56,40 @@ search_bar.send_keys(Keys.ENTER)
 nu_of_results = driver.find_element(By.XPATH, "/html/body/div[1]/div[3]/div[2]/div[2]/div/div/div/div[1]/div[2]/div[1]/div[1]/div").text.split(" ")[3]
 print("results for", product, "=>", nu_of_results)
 
+#check for pop-up
+try:
+    pop_up = driver.find_element(By.CLASS_NAME, "popup")
+    overlay = driver.find_element(By.CLASS_NAME, "overlay")
+    overlay.click()
+    print("pop up closed in product screen")
+except:
+    print("no pop up in product screen")
+
 #capture product cards
 products_wrapper = driver.find_element(By.CLASS_NAME, "prdct-cntnr-wrppr")
 products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
 print(len(products), f"{product}' s this page")
 
 #scrape product details
+time.sleep(SLEEP_TIME)
+for product in products:
+    brand_name = product.find_element(By.XPATH, "//div[1]/a/div[2]/div[1]/div/div/span[1]").text
+    product_name = product.find_element(By.CLASS_NAME, "prdct-desc-cntnr-name").text
+    product_price = product.find_element(By.CLASS_NAME, "prc-box-dscntd").text
+    product_picture = product.find_element(By.CLASS_NAME, "p-card-img").get_attribute("src")
+    #TODO check for rating, if possible from same page W.I.P.
+
+    # check rating count
+    try:
+        product_rating_count = product.find_element(By.CLASS_NAME, "ratingCount").text
+    except:
+        product_rating_count = None
+
+    print(brand_name, product_name)
+    print(product_price)
+    print(product_picture)
+    print(product_rating_count, "people commented this item")
+    
+    #TODO store product data
+
+#TODO scroll down (send_keys(Keys.DOWN))
