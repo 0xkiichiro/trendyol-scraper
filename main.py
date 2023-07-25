@@ -33,7 +33,7 @@ except:
 #click to sign in
 sign_in_button = driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[3]/div/div/div/div[1]/div[1]/p")
 sign_in_button.click()
-time.sleep(2)
+time.sleep(SLEEP_TIME)
 print("navigated to login page")
 
 #enter credentials
@@ -48,7 +48,7 @@ print("logged in")
 #click on search bar
 search_bar = driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[2]/div/div/div/input")
 #line below will be dynamically sent
-product = "suwen"
+product = "macbook"
 search_bar.send_keys(product)
 search_bar.send_keys(Keys.ENTER)
 
@@ -64,6 +64,11 @@ try:
     print("pop up closed in product screen")
 except:
     print("no pop up in product screen")
+    
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+time.sleep(SLEEP_TIME)
 
 #capture product cards
 products_wrapper = driver.find_element(By.CLASS_NAME, "prdct-cntnr-wrppr")
@@ -71,7 +76,6 @@ products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
 print(len(products), f"{product}' s this page")
 
 #scrape product details
-time.sleep(SLEEP_TIME)
 for product in products:
     brand_name = product.find_element(By.XPATH, "//div[1]/a/div[2]/div[1]/div/div/span[1]").text
     product_name = product.find_element(By.CLASS_NAME, "prdct-desc-cntnr-name").text
@@ -93,3 +97,6 @@ for product in products:
     #TODO store product data
 
 #TODO scroll down (send_keys(Keys.DOWN))
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
