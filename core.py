@@ -71,13 +71,24 @@ class TrendyolScraper:
         self.product = product
         nu_of_results = self.driver.find_element(By.XPATH, "/html/body/div[1]/div[3]/div[2]/div[2]/div/div/div/div[1]/div[2]/div[1]/div[1]/div").text.split(" ")[3]
         print(f"Results for {product} => {nu_of_results}")
+        self.set_nu_of_product_per_page()
+
+    # Get initial document height
+    def get_init_document_height(self):
+        init_height = self.driver.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );")
+        return init_height
 
     # Scroll down
     def scroll_down(self):
+        init_height = self.get_init_document_height()
         total_height = self.driver.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );")
-        target_height = int(total_height * 0.85)
+        target_height = int(total_height - init_height * 0.25)
+        self.driver.execute_script(f"window.scrollTo(0, {total_height});")
+        time.sleep(self.SLEEP_TIME / 2)
         self.driver.execute_script(f"window.scrollTo(0, {target_height});")
-        time.sleep(self.SLEEP_TIME)
+        self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.DOWN)
+        self.driver.find_element(By.TAG_NAME, "body").send_keys(Keys.DOWN)
+        time.sleep(self.SLEEP_TIME / 2)
 
     def get_document_height(self):
         document_height = self.driver.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );")
@@ -105,13 +116,19 @@ class TrendyolScraper:
         conn.commit()
         conn.close()
 
+    # Set number of items per page
+    def set_nu_of_product_per_page(self):
+        products_wrapper = self.driver.find_element(By.CLASS_NAME, "prdct-cntnr-wrppr")
+        products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
+        print(f"{len(products)} {self.product}'s per page")
+        self.product_per_page = len(products)
+
     # Scrape product details
     def scrape_product_details(self):
         products_wrapper = self.driver.find_element(By.CLASS_NAME, "prdct-cntnr-wrppr")
         products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
-        print(f"{len(products)} {self.product}'s on this page")
 
-        for product in products:
+        for product in products[-self.product_per_page:]:
             brand_name = product.find_element(By.XPATH, "//div[1]/a/div[2]/div[1]/div/div/span[1]").text
             product_name = product.find_element(By.CLASS_NAME, "prdct-desc-cntnr-name").text
             product_price = product.find_element(By.CLASS_NAME, "prc-box-dscntd").text

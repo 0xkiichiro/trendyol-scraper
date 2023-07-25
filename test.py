@@ -21,7 +21,7 @@ if __name__ == "__main__":
     scraper.login(userdata["email"], userdata["password"])
 
     # Search for a product
-    product = "macbook"
+    product = "suwen"
     scraper.search_product(product)
 
     # Close product pop-up if present
@@ -31,13 +31,16 @@ if __name__ == "__main__":
     scraper.get_search_results(product)
 
     # Get document height
-    height = scraper.get_document_height
-
     # Scroll down to load more products
-    scraper.scroll_down()
+    while True:
+        # Scrape product details
+        scraper.scrape_product_details()
+        init_height = scraper.get_document_height()
+        scraper.scroll_down()
+        last_height = scraper.get_document_height()
 
-    # Scrape product details
-    scraper.scrape_product_details()
+        if init_height is last_height:
+            break
 
     # Close the browser
     scraper.close_browser()
