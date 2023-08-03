@@ -1,7 +1,12 @@
-from core import TrendyolScraper
 import json
+import argparse
+from core import TrendyolScraper
 
 if __name__ == "__main__":
+    # enable CLI args for product
+    parser = argparse.ArgumentParser(description="Trendyol Scraper")
+    parser.add_argument("product", type=str, help="Name of the product to search for")
+    args = parser.parse_args()
     # Initialize the scraper
     chrome_binary_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     chrome_driver_path = "~/usr/local/bin/chromedriver"
@@ -21,7 +26,7 @@ if __name__ == "__main__":
     scraper.login(userdata["email"], userdata["password"])
 
     # Search for a product
-    product = "suwen"
+    product = args.product
     scraper.search_product(product)
 
     # Close product pop-up if present
