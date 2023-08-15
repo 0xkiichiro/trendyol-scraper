@@ -1,3 +1,4 @@
+import time
 import json
 import argparse
 from core import TrendyolScraper
@@ -24,6 +25,13 @@ if __name__ == "__main__":
 
     # Log in
     scraper.login(userdata["email"], userdata["password"])
+
+    # Testing new features
+    scraper.navigate_to_top_sellers()
+    time.sleep(5)
+    scraper.set_top_seller_category_to_all()
+    time.sleep(5)
+    scraper.get_all_categories_top_sellers()
 
     # Search for a product
     product = args.product

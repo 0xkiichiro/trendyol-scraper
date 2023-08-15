@@ -49,6 +49,35 @@ class TrendyolScraper:
         time.sleep(self.SLEEP_TIME)
         print("Logged in successfully.")
 
+    # Top sellers ARC
+    # Navigate to top sellers page
+    def navigate_to_top_sellers(self):
+        nav = self.driver.find_element(By.CLASS_NAME, "main-nav")
+        nav_buttons = nav.find_elements(By.CLASS_NAME, "tab-link")
+        top_seller_button = nav_buttons[9]
+        top_seller_button.click()
+
+    # Navigate to all categories (normally starts with woman)
+    def set_top_seller_category_to_all(self):
+        nav = self.driver.find_element(By.CLASS_NAME, "navigation-section")
+        all_categories_button = nav.find_element(By.CLASS_NAME, "navigation-section-breadcrumb-item")
+        all_categories_button.click()
+
+    # Get all categories for top sellers
+    def get_all_categories_top_sellers(self):
+        categories = self.driver.find_element(By.XPATH, """//*[@data-testid="sliderList"]""")
+        children = categories.find_elements(By.XPATH, './*')
+        child_texts = []
+        for child in children:
+            child_texts.append(child.text)
+        print(child_texts)
+        return child_texts
+
+    # Set the category for the top sellers
+    def set_top_seller_category(self, category):
+        pass
+
+    # Scrape any product ARC
     # Search for a product
     def search_product(self, product):
         search_bar = self.driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[2]/div/div/div/input")
