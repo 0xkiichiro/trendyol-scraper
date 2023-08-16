@@ -1,59 +1,102 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 import time
 import json
-import argparse
-from core import TrendyolScraper
 
-if __name__ == "__main__":
-    # enable CLI args for product
-    parser = argparse.ArgumentParser(description="Trendyol Scraper")
-    parser.add_argument("product", type=str, help="Name of the product to search for")
-    args = parser.parse_args()
-    # Initialize the scraper
-    chrome_binary_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    chrome_driver_path = "~/usr/local/bin/chromedriver"
-    scraper = TrendyolScraper(chrome_binary_path, chrome_driver_path)
+# initialize webdriver
+URL = "https://www.trendyol.com/"
+chrome_binary_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+options = webdriver.ChromeOptions()
+options.binary_location = chrome_binary_path
+driver = webdriver.Chrome(executable_path="~/usr/local/bin/chromedriver", options=options)
+driver.maximize_window()
+driver.get(URL)
+SLEEP_TIME = 2
 
-    # Load the website
-    scraper.load_website()
+#wait for lazy loading
+time.sleep(SLEEP_TIME)
 
-    # Close the pop-up if present
-    scraper.close_homepage_popup_if_present()
+#import credentials
+with open("userdata.json", "r") as userdata:
+    userdata = json.load(userdata)
 
-    # Import credentials
-    with open("userdata.json", "r") as userdata:
-        userdata = json.load(userdata)
+#check for pop up
+try:
+    pop_up = driver.find_element(By.CLASS_NAME, "homepage-popup")
+    modal_close = driver.find_element(By.CLASS_NAME, "modal-close")
+    modal_close.click()
+    print("pop up closed in homescreen")
+except:
+    print("no pop up in homescreen")
 
-    # Log in
-    scraper.login(userdata["email"], userdata["password"])
+#click to sign in
+sign_in_button = driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[3]/div/div/div/div[1]/div[1]/p")
+sign_in_button.click()
+time.sleep(SLEEP_TIME)
+print("navigated to login page")
 
-    # Testing new features
-    scraper.navigate_to_top_sellers()
-    time.sleep(5)
-    scraper.set_top_seller_category_to_all()
-    time.sleep(5)
-    scraper.get_all_categories_top_sellers()
+#enter credentials
+email_field = driver.find_element(By.ID, "login-email")
+email_field.send_keys(userdata["email"])
+password_field = driver.find_element(By.ID, "login-password-input")
+password_field.send_keys(userdata["password"])
+password_field.send_keys(Keys.ENTER)
+time.sleep(SLEEP_TIME)
+print("logged in")
 
-    # Search for a product
-    product = args.product
-    scraper.search_product(product)
+#click on search bar
+search_bar = driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[2]/div/div/div/input")
+#line below will be dynamically sent
+product = "macbook"
+search_bar.send_keys(product)
+search_bar.send_keys(Keys.ENTER)
 
-    # Close product pop-up if present
-    scraper.close_product_popup_if_present()
+#inform user of the dataset
+nu_of_results = driver.find_element(By.XPATH, "/html/body/div[1]/div[3]/div[2]/div[2]/div/div/div/div[1]/div[2]/div[1]/div[1]/div").text.split(" ")[3]
+print("results for", product, "=>", nu_of_results)
 
-    # Get search results
-    scraper.get_search_results(product)
+#check for pop-up
+try:
+    pop_up = driver.find_element(By.CLASS_NAME, "popup")
+    overlay = driver.find_element(By.CLASS_NAME, "overlay")
+    overlay.click()
+    print("pop up closed in product screen")
+except:
+    print("no pop up in product screen")
+    
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+time.sleep(SLEEP_TIME)
 
-    # Get document height
-    # Scroll down to load more products
-    while True:
-        # Scrape product details
-        scraper.scrape_product_details()
-        init_height = scraper.get_document_height()
-        scraper.scroll_down()
-        last_height = scraper.get_document_height()
+#capture product cards
+products_wrapper = driver.find_element(By.CLASS_NAME, "prdct-cntnr-wrppr")
+products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
+print(len(products), f"{product}' s this page")
 
-        if init_height is last_height:
-            break
+#scrape product details
+for product in products:
+    brand_name = product.find_element(By.XPATH, "//div[1]/a/div[2]/div[1]/div/div/span[1]").text
+    product_name = product.find_element(By.CLASS_NAME, "prdct-desc-cntnr-name").text
+    product_price = product.find_element(By.CLASS_NAME, "prc-box-dscntd").text
+    product_picture = product.find_element(By.CLASS_NAME, "p-card-img").get_attribute("src")
+    #TODO check for rating, if possible from same page W.I.P.
 
-    # Close the browser
-    scraper.close_browser()
+    # check rating count
+    try:
+        product_rating_count = product.find_element(By.CLASS_NAME, "ratingCount").text
+    except:
+        product_rating_count = None
+
+    print(brand_name, product_name)
+    print(product_price)
+    print(product_picture)
+    print(product_rating_count, "people commented this item")
+    
+    #TODO store product data
+
+#TODO scroll down (send_keys(Keys.DOWN))
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)
+driver.find_element(By.TAG_NAME, 'body').send_keys(Keys.PAGE_DOWN)

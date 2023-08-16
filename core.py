@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import sqlite3
 import time
-from db import create_products_table
+from db import create_products_table, create_top_seller_products_table
 
 class TrendyolScraper:
 
@@ -16,6 +16,7 @@ class TrendyolScraper:
         self.SLEEP_TIME = 2
         time.sleep(self.SLEEP_TIME)
         create_products_table()
+        create_top_seller_products_table()
 
     # Load the website
     def load_website(self):
@@ -49,6 +50,8 @@ class TrendyolScraper:
         time.sleep(self.SLEEP_TIME)
         print("Logged in successfully.")
 
+
+    # ---------------------------------------------------------------
     # Top sellers ARC
     # Navigate to top sellers page
     def navigate_to_top_sellers(self):
@@ -56,6 +59,7 @@ class TrendyolScraper:
         nav_buttons = nav.find_elements(By.CLASS_NAME, "tab-link")
         top_seller_button = nav_buttons[9]
         top_seller_button.click()
+        print("Navigated to top sellers page")
 
     # Navigate to all categories (normally starts with woman)
     def set_top_seller_category_to_all(self):
@@ -66,17 +70,47 @@ class TrendyolScraper:
     # Get all categories for top sellers
     def get_all_categories_top_sellers(self):
         categories = self.driver.find_element(By.XPATH, """//*[@data-testid="sliderList"]""")
-        children = categories.find_elements(By.XPATH, './*')
-        child_texts = []
-        for child in children:
-            child_texts.append(child.text)
-        print(child_texts)
-        return child_texts
+        self.children = categories.find_elements(By.XPATH, './*')
+        self.child_texts = []
+        for child in self.children:
+            self.child_texts.append(child.text.lower())
+        print(self.child_texts)
+        return self.child_texts
 
     # Set the category for the top sellers
-    def set_top_seller_category(self, category):
+    def set_top_seller_category(self, category: str):
+        category_index = self.child_texts.index(category.lower())
+        self.children[category_index].click()
+        print(f"Navigated to {category}")
+
+    # Get number of products in the page
+    def get_nu_of_top_seller_in_category(self):
+        wrapper = self.driver.find_element(By.CLASS_NAME, "best-seller")
+        products = wrapper.find_elements(By.CLASS_NAME, "product-card")
+        print(len(products))
+    
+    # Get product details
+    def scrape_top_seller_product_details(self):
+        wrapper = self.driver.find_element(By.CLASS_NAME, "best-seller")
+        products = wrapper.find_elements(By.CLASS_NAME, "product-card")
+        for product in products:
+            brand_name = product.find_element(By.CLASS_NAME, "product-brand").text
+            product_name = product.find_element(By.CLASS_NAME, "product-name").text
+            product_price = product.find_element(By.CLASS_NAME, "prc-box-dscntd").text
+            product_picture = product.find_element(By.CLASS_NAME, "product-img").get_attribute("src")
+            product_link = product.find_element(By.TAG_NAME, "a").get_attribute("href")
+
+            # Check rating count
+            try:
+                product_rating_count = int(product.find_element(By.CLASS_NAME, "ratingCount").text.replace("(", "", -1).replace(")", "", -1))
+            except:
+                product_rating_count = 0
+
+            # Store product data in DB
+            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link, True)
         pass
 
+    # ---------------------------------------------------------------
     # Scrape any product ARC
     # Search for a product
     def search_product(self, product):
@@ -124,23 +158,43 @@ class TrendyolScraper:
         return document_height
 
     # Store product data in DB        
-    def store_product_in_database(self, brand_name, product_name, product_price, product_picture, product_rating_count, product_link):
-        conn = sqlite3.connect('trendyol.sqlite')
-        cursor = conn.cursor()
+    def store_product_in_database(self, brand_name, product_name, product_price, product_picture, product_rating_count, product_link, top_seller):
+        if top_seller is False:
+            conn = sqlite3.connect('trendyol.sqlite')
+            cursor = conn.cursor()
 
-        # Check if product already in DB or not => compare product_link s
-        cursor.execute('SELECT * FROM scraped_products WHERE product_link = ?', (product_link,))
-        existing_product = cursor.fetchone()
+            # Check if product already in DB or not => compare product_link s
+            cursor.execute('SELECT * FROM top_seller_products WHERE product_link = ?', (product_link,))
+            existing_product = cursor.fetchone()
 
-        if not existing_product:
-            sql_query = '''INSERT INTO scraped_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link)
-                        VALUES (?, ?, ?, ?, ?, ?)'''
+            if not existing_product:
+                sql_query = '''INSERT INTO top_seller_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link)
+                            VALUES (?, ?, ?, ?, ?, ?)'''
 
-            cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link))
-            print("pushed", product_name, "into DB")
+                cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link))
+                print("pushed", product_name, "into DB")
 
-        else:
-            print("passed", product_link)
+            else:
+                print("passed", product_link)
+
+        elif top_seller is True:
+            conn = sqlite3.connect('trendyol.sqlite')
+            cursor = conn.cursor()
+
+            # Check if product already in DB or not => compare product_link s
+            cursor.execute('SELECT * FROM top_seller_products WHERE product_link = ?', (product_link,))
+            existing_product = cursor.fetchone()
+
+            if not existing_product:
+                sql_query = '''INSERT INTO top_seller_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link)
+                            VALUES (?, ?, ?, ?, ?, ?)'''
+
+                cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link))
+                print("pushed", product_name, "into DB")
+
+            else:
+                print("passed", product_link)
+
 
         conn.commit()
         conn.close()
@@ -172,7 +226,7 @@ class TrendyolScraper:
                 product_rating_count = 0
 
             # Store product data in DB
-            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link)
+            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link, False)
             
 
     def close_browser(self):
