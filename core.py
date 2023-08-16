@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.service import Service as ChromeService
 import sqlite3
 import time
 from db import create_products_table, create_top_seller_products_table
@@ -12,7 +13,8 @@ class TrendyolScraper:
         self.URL = "https://www.trendyol.com/"
         options = webdriver.ChromeOptions()
         options.binary_location = chrome_binary_path
-        self.driver = webdriver.Chrome(executable_path=chrome_driver_path, options=options)
+        service = ChromeService(executable_path=chrome_driver_path)
+        self.driver = webdriver.Chrome(service=service, options=options)
         self.SLEEP_TIME = 2
         time.sleep(self.SLEEP_TIME)
         create_products_table()
