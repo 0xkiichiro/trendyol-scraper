@@ -16,7 +16,8 @@ def create_products_table():
             product_price TEXT,
             product_picture TEXT,
             product_rating_count INTEGER,
-            product_link TEXT
+            product_link TEXT,
+            searched_keyword TEXT
         )'''
         cursor.execute(sql_query)
 
@@ -39,7 +40,8 @@ def create_top_seller_products_table():
             product_price TEXT,
             product_picture TEXT,
             product_rating_count INTEGER,
-            product_link TEXT
+            product_link TEXT,
+            category TEXT
         )'''
         cursor.execute(sql_query)
 

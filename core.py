@@ -83,6 +83,7 @@ class TrendyolScraper:
     def set_top_seller_category(self, category: str):
         category_index = self.child_texts.index(category.lower())
         self.children[category_index].click()
+        self.category = category
         print(f"Navigated to {category}")
 
     # Get number of products in the page
@@ -109,7 +110,7 @@ class TrendyolScraper:
                 product_rating_count = 0
 
             # Store product data in DB
-            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link, True)
+            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link, self.category, True)
         pass
 
     # ---------------------------------------------------------------
@@ -117,6 +118,7 @@ class TrendyolScraper:
     # Search for a product
     def search_product(self, product):
         search_bar = self.driver.find_element(By.XPATH, "/html/body/div/div[1]/div/div[2]/div/div/div[2]/div/div/div/input")
+        self.searched_keyword = product
         search_bar.send_keys(product)
         search_bar.send_keys(Keys.ENTER)
 
@@ -160,38 +162,36 @@ class TrendyolScraper:
         return document_height
 
     # Store product data in DB        
-    def store_product_in_database(self, brand_name, product_name, product_price, product_picture, product_rating_count, product_link, top_seller):
+    def store_product_in_database(self, brand_name, product_name, product_price, product_picture, product_rating_count, product_link, searched_keyword, top_seller=None):
+        conn = sqlite3.connect('trendyol.sqlite')
+        cursor = conn.cursor()
         if top_seller is False:
-            conn = sqlite3.connect('trendyol.sqlite')
-            cursor = conn.cursor()
 
             # Check if product already in DB or not => compare product_link s
-            cursor.execute('SELECT * FROM top_seller_products WHERE product_link = ?', (product_link,))
+            cursor.execute('SELECT * FROM scraped_products WHERE product_link = ?', (product_link,))
             existing_product = cursor.fetchone()
 
             if not existing_product:
-                sql_query = '''INSERT INTO top_seller_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link)
-                            VALUES (?, ?, ?, ?, ?, ?)'''
+                sql_query = '''INSERT INTO scraped_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link, searched_keyword)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)'''
 
-                cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link))
+                cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link, searched_keyword))
                 print("pushed", product_name, "into DB")
 
             else:
                 print("passed", product_link)
 
         elif top_seller is True:
-            conn = sqlite3.connect('trendyol.sqlite')
-            cursor = conn.cursor()
 
             # Check if product already in DB or not => compare product_link s
             cursor.execute('SELECT * FROM top_seller_products WHERE product_link = ?', (product_link,))
             existing_product = cursor.fetchone()
 
             if not existing_product:
-                sql_query = '''INSERT INTO top_seller_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link)
-                            VALUES (?, ?, ?, ?, ?, ?)'''
+                sql_query = '''INSERT INTO top_seller_products (brand_name, product_name, product_price, product_picture, product_rating_count, product_link, category)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)'''
 
-                cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link))
+                cursor.execute(sql_query, (brand_name, product_name, product_price, product_picture, product_rating_count, product_link, self.category))
                 print("pushed", product_name, "into DB")
 
             else:
@@ -228,7 +228,7 @@ class TrendyolScraper:
                 product_rating_count = 0
 
             # Store product data in DB
-            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link, False)
+            self.store_product_in_database(brand_name, product_name, product_price, product_picture, product_rating_count, product_link, self.searched_keyword, False)
             
 
     def close_browser(self):

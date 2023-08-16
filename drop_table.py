@@ -8,6 +8,7 @@ cur = conn.cursor()
 
 # Execute the DROP TABLE command
 cur.execute("DROP TABLE IF EXISTS scraped_products")
+cur.execute("DROP TABLE IF EXISTS top_seller_products")
 
 # Commit the changes and close the connection
 conn.commit()
