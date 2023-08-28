@@ -3,10 +3,10 @@ import json
 import argparse
 from core import TrendyolScraper
 
-if __name__ == "__main__":
+def scrape_top_sellers(category="erkek"):
     # enable CLI args for product
     parser = argparse.ArgumentParser(description="Trendyol Scraper")
-    parser.add_argument("category", type=str, help="Top sellers category to scrape")
+    parser.add_argument("category", type=str, help="Top sellers category to scrape", default="kadın")
     args = parser.parse_args()
     
     # Initialize the scraper
@@ -51,3 +51,6 @@ if __name__ == "__main__":
 
     # Close the browser
     scraper.close_browser()
+
+if __name__ == "__main__":
+    pass

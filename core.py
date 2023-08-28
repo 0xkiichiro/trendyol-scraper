@@ -197,7 +197,6 @@ class TrendyolScraper:
             else:
                 print("passed", product_link)
 
-
         conn.commit()
         conn.close()
 
@@ -214,7 +213,7 @@ class TrendyolScraper:
         products = products_wrapper.find_elements(By.CLASS_NAME, "p-card-wrppr")
 
         for product in products[-self.product_per_page:]:
-            brand_name = product.find_element(By.XPATH, "//div[1]/a/div[2]/div[1]/div/div/span[1]").text
+            brand_name = product.find_element(By.XPATH, "//div[1]/a/div[2]/div[1]/div/h3/span[1]").text
             product_name = product.find_element(By.CLASS_NAME, "prdct-desc-cntnr-name").text
             product_price = product.find_element(By.CLASS_NAME, "prc-box-dscntd").text
             product_picture = product.find_element(By.CLASS_NAME, "p-card-img").get_attribute("src")
