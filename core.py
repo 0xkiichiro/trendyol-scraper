@@ -2,19 +2,20 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 import sqlite3
 import time
 from db import create_products_table, create_top_seller_products_table
 
 class TrendyolScraper:
-
     # Initialize the scraper
     def __init__(self, chrome_binary_path = None, chrome_driver_path = None):
         self.URL = "https://www.trendyol.com/"
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.binary_location = chrome_binary_path
-        service = ChromeService(executable_path=chrome_driver_path)
-        self.driver = webdriver.Chrome(service=service, options=options)
+        service = FirefoxService(executable_path=chrome_driver_path)
+        self.driver = webdriver.Firefox(service=service, options=options)
         self.SLEEP_TIME = 2
         time.sleep(self.SLEEP_TIME)
         create_products_table()
@@ -231,4 +232,4 @@ class TrendyolScraper:
             
 
     def close_browser(self):
-        self.driver.quit()
+        self.driver.quit() # chrome and general purposes

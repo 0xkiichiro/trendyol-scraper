@@ -3,16 +3,11 @@ import json
 import argparse
 from core import TrendyolScraper
 
-def scrape_top_sellers(category="erkek"):
-    # enable CLI args for product
-    parser = argparse.ArgumentParser(description="Trendyol Scraper")
-    parser.add_argument("category", type=str, help="Top sellers category to scrape", default="kadın")
-    args = parser.parse_args()
-    
+def scrape_top_sellers(category):
     # Initialize the scraper
-    chrome_binary_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    chrome_driver_path = "~/usr/local/bin/chromedriver"
-    scraper = TrendyolScraper(chrome_binary_path, chrome_driver_path)
+    firefox_binary_path = "/Applications/Firefox.app/Contents/MacOS/firefox"
+    gecko_driver_path = "~/usr/local/bin/geckodriver"
+    scraper = TrendyolScraper(firefox_binary_path, gecko_driver_path)
 
     # Load the website
     scraper.load_website()
@@ -53,4 +48,8 @@ def scrape_top_sellers(category="erkek"):
     scraper.close_browser()
 
 if __name__ == "__main__":
-    pass
+    parser = argparse.ArgumentParser(description="Trendyol Scraper")
+    parser.add_argument("category", type=str, help="Category of top sellers", default="erkek")
+    args = parser.parse_args()
+
+    scrape_top_sellers(args.category)

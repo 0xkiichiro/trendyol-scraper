@@ -1,13 +1,13 @@
 import time
 import json
-from core import TrendyolScraper
 import argparse
+from core import TrendyolScraper
 
 def scrape_product(product):
     # Initialize the scraper
-    chrome_binary_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    chrome_driver_path = "/usr/local/bin/chromedriver"  # Provide the correct path
-    scraper = TrendyolScraper(chrome_binary_path, chrome_driver_path)
+    firefox_binary_path = "/Applications/Firefox.app/Contents/MacOS/firefox"
+    gecko_driver_path = "~/usr/local/bin/geckodriver"
+    scraper = TrendyolScraper(firefox_binary_path, gecko_driver_path)
 
     try:
         # Load the website
